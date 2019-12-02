@@ -1,0 +1,123 @@
+
+#include <Wire.h>
+#include <LiquidCrystal.h>
+const byte lcdAddr = 0x27;
+const byte lcdCols = 16;
+const byte lcdRows = 2;
+LiquidCrystal lcd(12,11,5,4,3,2);
+
+// constants won't change. They're used here to set pin numbers:
+const int buttonPin = 6;     // the number of the pushbutton pin
+
+// variables will change:
+int buttonState = 0;         // variable for reading the pushbutton status
+
+const byte NUMBER_OF_MSSGS = 5;
+   char* names[NUMBER_OF_MSSGS] = {
+   "i believe in you!",
+   "you are loved <3",
+   "only dead fish go with the flow",
+   "don't be afraid to make misteaks",
+   "even if you're not perfect you're limited edition."
+   };
+   
+
+const byte NUMBER_OF_FACES = 5;
+   char* faces[NUMBER_OF_FACES] = {
+   "(^ o ^)",
+   "(u w u)",
+   "(* 3 *)",
+   "(> - <)",
+   "(* ^ *)"
+   
+};
+
+
+void setup() {
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT);
+  lcd.begin(16, 2);
+}
+
+void loop() {
+  // read the state of the pushbutton value:
+  buttonState = digitalRead(buttonPin);
+
+  // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+  if (buttonState == HIGH) {
+    // name the function you want to call from the list below:
+      textCall();  // You can identify a function because they start with void
+      
+  } 
+  
+  else {
+   
+  lcd.clear(); // Clear the screen when the button is not pressed
+  }
+}
+
+
+// top line stays still and second line scrolls
+void textCall() {
+
+   const byte NUMBER_OF_FACES = 5;
+   char* faces[NUMBER_OF_FACES] = {
+   "(^ o ^)",
+   "(u w u)",
+   "(* 3 *)",
+   "(> - <)",
+   "(* ^ *)"
+   };
+
+// set up list of messages to display - make sure to add a comma to the end of each line
+   const byte NUMBER_OF_MSSGS = 2;
+   char* names[NUMBER_OF_MSSGS] = {
+   "Mr. Reimer is amazing",
+   "Mr. Reimer can fix any code",
+   };
+
+  
+ String Line1_fixed = faces[random(0,NUMBER_OF_FACES)]; //This is the string that will be fixed in the first line of LCD.
+
+
+//main code
+  lcd.print(Line1_fixed); //Print first line.
+
+  String Line2_scrolling =  "                "; // Defining a string consisting of sixteen spaces.
+  Line2_scrolling += names[random(0,NUMBER_OF_MSSGS)]; // Adding sixteen spaces in front of the string that we want displayed. This is done so that line 2 will initially be empty in the display. Now we can display the string "Line2_scrolling".
+
+  int Line2_length = Line2_scrolling.length(); // Length of our string (including the sixteen spaces that we added in front).
+  int Line2_ChunkNumber = floor(Line2_length / 16 + 2); // Number of sixteen-character chunks in the string, plus one for the last chunk that is less than sixteen characters long.
+  int Line2_LastChunkLength = Line2_length - ((Line2_ChunkNumber - 2) * 16); // Length of the last chunk, which is usually less than sixteen.
+  int Line2_ChunkLength; // Will be initialized as 16 below, which is the usual length of chunks. But it will be changed if the last chunk is smaller in length.
+  if (Line2_LastChunkLength == 0) { // If the string has a character length of a multiple of sixteen, Line2_ChunkNumber is reduced by one, in order to prevent redundant "for" cycles.
+    Line2_ChunkNumber--;
+  }
+  
+  String chunk[Line2_ChunkNumber]; // Create an array that can hold all the divided chunks of our scrolling string inside it.
+
+  for (int j = 0; j < Line2_ChunkNumber - 1; j++) { // Assign all chunks inside chunk[].
+    chunk[j] = Line2_scrolling.substring(j * 16 , j * 16 + 16);
+  }
+
+  for (int k = 0; k < Line2_ChunkNumber - 1; k++) {
+    lcd.clear();
+    lcd.print(Line1_fixed); // Print it again to avoid flicker.
+    lcd.setCursor(0, 1);
+    lcd.print(chunk[k]); // Display the string with the chunk number "k", starting from (0,1). This is the entire visible screen area of line 2 of the LCD.
+    lcd.print(chunk[k + 1]); // Print the string with the chunk number "k+1", starting from (16,1). This is the area that is immediately to the right of the visible area of line 2 of the LCD.
+    if (k != Line2_ChunkNumber - 2) { // If we are not dealing with the last chunk, set the number of iterations in the next "for" cycle to 16. If it is the last chunk and if the length of the last chunk isn't zero, set the number of iterations in the next "for" cycle to size of last chunk.
+      Line2_ChunkLength = 16;
+    }
+    else if (Line2_LastChunkLength != 0) {
+      Line2_ChunkLength = Line2_LastChunkLength;
+    }
+
+    for (int i = 1; i < Line2_ChunkLength + 1; i++) {
+      lcd.scrollDisplayLeft(); // Scroll display left by one position.
+      lcd.setCursor(i, 0); // Set cursor on the first line to allign with the scrolling string in the second line of LCD, in order to print the fixed string on the first line above where scrolling string starts. Currently in the algorithm, scrolling string starts at (i,1), hence setting the cursor to (i,0).
+      lcd.print(Line1_fixed); // Print the fixed string so that its starting position alligns with the starting position of the scrolling string.
+      delay(300); // Delay for visual ease of reading.
+    }
+  }
+}
